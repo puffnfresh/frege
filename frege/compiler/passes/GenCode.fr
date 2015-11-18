@@ -36,5 +36,5 @@ import Compiler.gen.Common(mainClass)
 pass :: StIO (String, Int)
 pass = do
     g   ← getSTT
-    liftIO $ g.printer.println "Thank you!"
+    -- liftIO $ g.printer.println "Thank you!"
     return ("Gen78", 1)

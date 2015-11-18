@@ -4,7 +4,7 @@
 
 protected package frege.java.IO where
 
-import frege.java.Lang public(IOException, PrintStream)
+import frege.java.Lang public(Byte, IOException, PrintStream)
 import frege.prelude.PreludeBase
 import frege.prelude.PreludeIO
 import frege.prelude.PreludeText
@@ -40,6 +40,8 @@ data FileOutputStream = mutable native java.io.FileOutputStream where
                     throws FileNotFoundException
     --- Writes the specified *byte* to this file output stream.  
     native write :: FileOutputStream -> Int -> IO ()
+                    throws IOException
+                  | FileOutputStream -> ArrayOf RealWorld Byte -> IO ()
                     throws IOException
                                                 
 

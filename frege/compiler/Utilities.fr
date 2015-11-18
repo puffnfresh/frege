@@ -1026,12 +1026,12 @@ unusedName qn g
  -}
 print x = do
     g <- getSTT
-    liftIO $ g.printer.print (display x)
+    -- liftIO $ g.printer.print (display x)
     return ()
 
 println x = do
     g <- getSTT
-    liftIO $ g.printer.println (display x)
+    -- liftIO $ g.printer.println (display x)
     return ()
 
 

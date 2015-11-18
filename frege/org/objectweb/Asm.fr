@@ -1,0 +1,29 @@
+package frege.org.objectweb.Asm where
+
+data ClassWriter = pure native org.objectweb.asm.ClassWriter where
+    native new :: Int -> IO ClassWriter
+    native toByteArray :: ClassWriter -> IO (ArrayOf RealWorld Byte)
+    native visit :: ClassWriter -> Int -> Int -> String -> Maybe String -> Maybe String -> Maybe (JArray String) -> IO ()
+    native visitMethod :: ClassWriter -> Int -> String -> String -> Maybe String -> Maybe (JArray String) -> IO MethodVisitor
+
+data MethodVisitor = pure native org.objectweb.asm.MethodVisitor where
+    native visitVarInsn :: MethodVisitor -> Int -> Int -> IO ()
+    native visitMethodInsn :: MethodVisitor -> Int -> String -> String -> String -> Bool -> IO ()
+    native visitInsn :: MethodVisitor -> Int -> IO ()
+    native visitMaxs :: MethodVisitor -> Int -> Int -> IO ()
+    native visitEnd :: MethodVisitor -> IO ()
+
+pure native v1_1 org.objectweb.asm.Opcodes.V1_1 :: Int
+
+pure native accPublic org.objectweb.asm.Opcodes.ACC_PUBLIC :: Int
+pure native accStatic org.objectweb.asm.Opcodes.ACC_STATIC :: Int
+pure native insnReturn org.objectweb.asm.Opcodes.RETURN :: Int
+pure native varInsnAload org.objectweb.asm.Opcodes.ALOAD :: Int
+pure native methodInsnInvokespecial org.objectweb.asm.Opcodes.INVOKESPECIAL :: Int
+
+close :: MutableIO File -> ClassWriter -> IO ()
+close file cw = do
+  code <- cw.toByteArray
+  fos <- FileOutputStream.new file
+  fos.write code
+  fos.close

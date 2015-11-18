@@ -8,6 +8,8 @@ import  frege.data.TreeMap as TM(TreeMap, each)
 import  frege.java.Net(URLClassLoader)
 import  frege.control.monad.State  (State, StateT)
 
+import  frege.org.objectweb.Asm(ClassWriter)
+
 import  frege.compiler.enums.Flags  as  Compilerflags(Flag, Flags)
 import  frege.compiler.enums.TokenID(TokenID)
 import  frege.compiler.types.Positions
@@ -111,7 +113,7 @@ data SubSt = !Sub {
 
 --- items that are set and used during code generation
 data GenSt = !Gen {
-    printer :: PrintWriter       --- generated java code goes here, UTF-8 encoded
+    printer :: Maybe ClassWriter       --- generated java code goes here, UTF-8 encoded
     tunique :: Int                     --- unique numbers for taus
     runique :: Int                     --- unique numbers for rhos
     sunique :: Int                     --- unique numbers for sigmas

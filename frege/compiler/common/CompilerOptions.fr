@@ -15,7 +15,6 @@ import  frege.compiler.types.Targets public(thisTarget)
 import  frege.compiler.types.Targets(Target)
 
 
-
 --- the path separator used here
 pathSep = fromMaybe ":"  (System.getProperty "path.separator")
 
@@ -91,7 +90,7 @@ eclipseOptions = do
 
 --- an initial Gen data structure
 initialGen = Gen {
-                printer = IO.stdout,
+                printer = Nothing,
                 tunique = 0,
                 runique = 0,
                 sunique = 0,

@@ -53,10 +53,10 @@ TOOLSF  = $(DIR)/tools
 COMPS   = frege/compiler
 
 
-FREGE    = $(JAVA) -Xss4m -Xmx1800m -cp build
+FREGE    = $(JAVA) -Xss4m -Xmx1800m -cp build:asm-5.0.4.jar
 
 #	compile using the fregec.jar in the working directory
-FREGECJ  = $(FREGE)  -jar fregec.jar  -d build -hints
+FREGECJ  = $(FREGE)  -jar fregec.jar  -fp asm-5.0.4.jar  -d build -hints
 
 #	compile compiler1 with fregec.jar, uses prelude sources from shadow/
 FREGEC0  = $(FREGECJ) -prefix a -sp shadow:.

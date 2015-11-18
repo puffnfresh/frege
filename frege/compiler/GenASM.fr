@@ -1,0 +1,20 @@
+package frege.compiler.GenASM where
+
+import Compiler.types.Global
+import frege.org.objectweb.Asm
+
+pass :: StIO (String, Int)
+pass = do
+  g <- getSTT
+  liftIO $ maybe (return ()) (mainClass g) g.printer
+  return ("asm class", 1)
+
+mainClass :: Global -> ClassWriter -> IO ()
+mainClass g cw = do
+  let name = g.packClass g.thisPack
+  cw.visit v1_1 accPublic (name.qual.replaceAll ´\.´ "/" ++ "/" ++ name.base) Nothing (Just "java/lang/Object") Nothing
+
+  mw0 <- cw.visitMethod (accPublic + accStatic) "main" "([Ljava/lang/String;)V" Nothing Nothing
+  mw0.visitInsn insnReturn
+  mw0.visitMaxs 1 1
+  mw0.visitEnd
