@@ -1,20 +1,111 @@
 package frege.compiler.GenASM where
 
-import Compiler.types.Global
-import frege.org.objectweb.Asm
+import Data.TreeMap as TM(TreeMap, values, keys, each, insert, lookup)
+import Data.Graph (stronglyConnectedComponents tsort)
+import Data.List as DL(sortBy, partitioned)
+
+import  Compiler.types.Global
+import  frege.compiler.types.JNames
+import  frege.org.objectweb.Asm
+import  Compiler.types.Symbols
+
+import  Compiler.classes.Nice
+
+import frege.compiler.Utilities     as U()
 
 pass :: StIO (String, Int)
 pass = do
   g <- getSTT
-  liftIO $ maybe (return ()) (mainClass g) g.printer
+  maybe (return ()) mainClass g.printer
   return ("asm class", 1)
 
-mainClass :: Global -> ClassWriter -> IO ()
-mainClass g cw = do
-  let name = g.packClass g.thisPack
-  cw.visit v1_1 accPublic (name.qual.replaceAll ´\.´ "/" ++ "/" ++ name.base) Nothing (Just "java/lang/Object") Nothing
+toType :: JName -> String
+toType name = name.qual.replaceAll ´\.´ "/" ++ "/" ++ name.base
 
-  mw0 <- cw.visitMethod (accPublic + accStatic) "main" "([Ljava/lang/String;)V" Nothing Nothing
-  mw0.visitInsn insnReturn
-  mw0.visitMaxs 1 1
+symCode :: TreeMap a b -> Symbol -> StG Symbol
+symCode binds sym = do
+    g <- getST
+    -- E.logmsg TRACEG sym.pos (text ("symbol code for " ++ nicer sym g))
+    return sym
+
+genSSC :: ClassWriter -> [Symbol] -> StIO ()
+genSSC _ [] = return ()
+genSSC cw (SymT {}:xs) = do
+  liftIO $ println "SymT"
+  genSSC cw xs
+genSSC cw (SymD {}:xs) = do
+  liftIO $ println "SymD"
+  genSSC cw xs
+genSSC cw (SymC {}:xs) = do
+  liftIO $ println "SymC"
+  genSSC cw xs
+genSSC cw (SymI {}:xs) = do
+  liftIO $ println "SymI"
+  genSSC cw xs
+genSSC cw ((symv@SymV {}):xs) = do
+  g <- getSTT
+  liftIO do
+    fv <- cw.visitField (op_acc_final + op_acc_public + op_acc_static) "_main" "Lfrege/runtime/Lambda;" Nothing Nothing
+    fv.visitEnd
+    clinit <- cw.visitMethod op_acc_static "<clinit>" "()V" Nothing Nothing
+    clinit.visitFieldInsn op_getstatic "frege/prelude/PreludeText$IShow_String" "it" "Lfrege/prelude/PreludeText$IShow_String;"
+    clinit.visitLdcInsn "Hello world!"
+    clinit.visitMethodInsn op_invokestatic "frege/Prelude" "println" "(Lfrege/prelude/PreludeText$CShow;Ljava/lang/Object;)Lfrege/runtime/Lambda;" false
+    let cn = toType $ g.packClass g.thisPack
+    clinit.visitFieldInsn op_putstatic cn "_main" "Lfrege/runtime/Lambda;"
+    clinit.visitInsn op_return
+    clinit.visitMaxs 0 0
+    clinit.visitEnd
+  genSSC cw xs
+genSSC cw (SymA {}:xs) = do
+  liftIO $ println "SymA"
+  genSSC cw xs
+genSSC cw (SymL {}:xs) = do
+  liftIO $ println "SymL"
+  genSSC cw xs
+
+mainClass :: ClassWriter -> StIO ()
+mainClass cw = do
+  g <- getSTT
+  let cn = toType $ g.packClass g.thisPack
+
+  let vals = values g.thisTab
+
+  liftStG (mapSt (symCode TreeMap.empty) (sortBy (comparing Symbol.name) [ s | s@SymT {sid} <- vals ]))
+      >>= genSSC cw
+  liftStG (mapSt (symCode TreeMap.empty) (sortBy (comparing Symbol.name) [ s | s@SymC {sid} <- vals ]))
+      >>= genSSC cw
+  liftStG (mapSt (symCode TreeMap.empty) (sortBy (comparing Symbol.name) [ s | s@SymI {sid} <- vals ]))
+      >>= genSSC cw
+  -- do variables in dependency order, this is so that CAFs refer only to CAFs
+  -- whose java initialization occurs earlier
+  let vars = [ s | s@SymV {} <- vals ]
+  liftStG (
+          mapSt U.fundep vars
+          >>= mapSt U.findV . concat . tsort
+          >>= mapSt (symCode TreeMap.empty))
+      >>= genSSC cw
+
+  liftIO do
+    cw.visit op_v1_1 op_acc_public cn Nothing (Just "java/lang/Object") Nothing
+    mainMethod cn cw
+
+mainMethod :: String -> ClassWriter -> IO ()
+mainMethod cn cw = do
+  mw0 <- cw.visitMethod (op_acc_public + op_acc_static) "main" "([Ljava/lang/String;)V" Nothing Nothing
+  mw0.visitFieldInsn op_getstatic cn "_main" "Lfrege/runtime/Lambda;"
+  mw0.visitMethodInsn op_invokestatic "frege/runtime/Delayed" "forced" "(Ljava/lang/Object;)Ljava/lang/Object;" false
+  mw0.visitTypeInsn op_checkcast "frege/runtime/Lambda"
+  mw0.visitMethodInsn op_invokestatic "frege/prelude/PreludeBase$TST" "performUnsafe" "(Lfrege/runtime/Lambda;)Ljava/lang/Object;" false
+  mw0.visitMethodInsn op_invokestatic "frege/runtime/Runtime" "runMain" "(Ljava/lang/Object;)Ljava/lang/Integer;" false
+  l0 <- Label.new ()
+  mw0.visitVarInsn op_astore 1
+  mw0.visitVarInsn op_aload 1
+  mw0.visitJumpInsn op_ifnull l0
+  mw0.visitVarInsn op_aload 1
+  mw0.visitMethodInsn op_invokevirtual "java/lang/Integer" "intValue" "()I" false
+  mw0.visitMethodInsn op_invokestatic "java/lang/System" "exit" "(I)V" false
+  mw0.visitLabel l0
+  mw0.visitInsn op_return
+  mw0.visitMaxs 0 0
   mw0.visitEnd

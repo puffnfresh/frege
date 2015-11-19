@@ -22,7 +22,7 @@
 .SUFFIXES: .class .fr
 
 JAVAC = javac -encoding UTF-8
-YACC =`which byacc || which byaccj || which pbyacc || false`
+YACC =`which yacc || which byacc || which byaccj || which pbyacc || false`
 JAVA = java "-Dfrege.javac=internal"
 
 

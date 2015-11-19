@@ -80,7 +80,7 @@ import  Compiler.passes.Final as FI()
 import  Control.Concurrent as C()
 -- import  Compiler.Utilities as U()
 
-import frege.org.objectweb.Asm (ClassWriter, close)
+import frege.org.objectweb.Asm (ClassWriter, compute_maxs, compute_frames, close)
 
 
 main :: [String] -> IO Bool
@@ -307,7 +307,7 @@ openPrinter = do
 
 
 openFilePrinter suffix = do
-    pw <- liftIO $ ClassWriter.new 0
+    pw <- liftIO $ ClassWriter.new (compute_maxs + compute_frames)
     changeSTT Global.{gen <- GenSt.{printer=Just pw}}
 
 --- close the current file printer and continue to print to 'stdout'

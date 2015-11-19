@@ -380,8 +380,6 @@ pass = do
                     implement = map (sigmaJT g) g.options.implements, 
                     defs=[]}
         headline = (PP.pretty 200 (anno modul)).replaceAll ´}´ ""
-    -- U.print "final public class "
-    -- U.print (mainClass g).base
     U.println headline
     reconstruct (g.options.code)
 
@@ -403,14 +401,11 @@ pass = do
     -- do variables in dependency order, this is so that CAFs refer only to CAFs
     -- whose java initialization occurs earlier
     let vars = [ s | s@SymV {} <- vals ]
-    -- names   <- mapSt U.fundep vars
-    -- varsyms <- mapSt U.findV (concat (U.tsort names))
     liftStG (
             mapSt U.fundep vars 
             >>= mapSt U.findV . concat . tsort 
             >>= mapSt (symCode TreeMap.empty))
         >>= ppSSC 
-    -- mapSt (symCode Tree.empty) varsyms >>= ppSS
 
     -- constants
     liftStG reqMain                 -- make sure main class is made

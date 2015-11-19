@@ -1,25 +1,48 @@
 package frege.org.objectweb.Asm where
 
+data Label = pure native org.objectweb.asm.Label where
+    native new :: () -> IO Label
+
 data ClassWriter = pure native org.objectweb.asm.ClassWriter where
     native new :: Int -> IO ClassWriter
     native toByteArray :: ClassWriter -> IO (ArrayOf RealWorld Byte)
     native visit :: ClassWriter -> Int -> Int -> String -> Maybe String -> Maybe String -> Maybe (JArray String) -> IO ()
+    native visitField :: ClassWriter -> Int -> String -> String -> Maybe String -> Maybe String -> IO FieldVisitor
     native visitMethod :: ClassWriter -> Int -> String -> String -> Maybe String -> Maybe (JArray String) -> IO MethodVisitor
+
+data FieldVisitor = pure native org.objectweb.asm.FieldVisitor where
+    native visitEnd :: FieldVisitor -> IO ()
 
 data MethodVisitor = pure native org.objectweb.asm.MethodVisitor where
     native visitVarInsn :: MethodVisitor -> Int -> Int -> IO ()
     native visitMethodInsn :: MethodVisitor -> Int -> String -> String -> String -> Bool -> IO ()
+    native visitFieldInsn :: MethodVisitor -> Int -> String -> String -> String -> IO ()
+    native visitTypeInsn :: MethodVisitor -> Int -> String -> IO ()
+    native visitLdcInsn :: MethodVisitor -> String -> IO ()
     native visitInsn :: MethodVisitor -> Int -> IO ()
     native visitMaxs :: MethodVisitor -> Int -> Int -> IO ()
+    native visitLabel :: MethodVisitor -> Label -> IO ()
+    native visitJumpInsn :: MethodVisitor -> Int -> Label -> IO ()
     native visitEnd :: MethodVisitor -> IO ()
 
-pure native v1_1 org.objectweb.asm.Opcodes.V1_1 :: Int
+pure native compute_frames org.objectweb.asm.ClassWriter.COMPUTE_FRAMES :: Int
+pure native compute_maxs org.objectweb.asm.ClassWriter.COMPUTE_MAXS :: Int
 
-pure native accPublic org.objectweb.asm.Opcodes.ACC_PUBLIC :: Int
-pure native accStatic org.objectweb.asm.Opcodes.ACC_STATIC :: Int
-pure native insnReturn org.objectweb.asm.Opcodes.RETURN :: Int
-pure native varInsnAload org.objectweb.asm.Opcodes.ALOAD :: Int
-pure native methodInsnInvokespecial org.objectweb.asm.Opcodes.INVOKESPECIAL :: Int
+pure native op_acc_final org.objectweb.asm.Opcodes.ACC_FINAL :: Int
+pure native op_acc_public org.objectweb.asm.Opcodes.ACC_PUBLIC :: Int
+pure native op_acc_static org.objectweb.asm.Opcodes.ACC_STATIC :: Int
+pure native op_aconst_null org.objectweb.asm.Opcodes.ACONST_NULL :: Int
+pure native op_aload org.objectweb.asm.Opcodes.ALOAD :: Int
+pure native op_astore org.objectweb.asm.Opcodes.ASTORE :: Int
+pure native op_checkcast org.objectweb.asm.Opcodes.CHECKCAST :: Int
+pure native op_getstatic org.objectweb.asm.Opcodes.GETSTATIC :: Int
+pure native op_putstatic org.objectweb.asm.Opcodes.PUTSTATIC :: Int
+pure native op_ifnull org.objectweb.asm.Opcodes.IFNULL :: Int
+pure native op_invokespecial org.objectweb.asm.Opcodes.INVOKESPECIAL :: Int
+pure native op_invokestatic org.objectweb.asm.Opcodes.INVOKESTATIC :: Int
+pure native op_invokevirtual org.objectweb.asm.Opcodes.INVOKEVIRTUAL :: Int
+pure native op_return org.objectweb.asm.Opcodes.RETURN :: Int
+pure native op_v1_1 org.objectweb.asm.Opcodes.V1_1 :: Int
 
 close :: MutableIO File -> ClassWriter -> IO ()
 close file cw = do
